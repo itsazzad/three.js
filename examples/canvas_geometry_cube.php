@@ -36,6 +36,7 @@
 <script src="js/libs/stats.min.js"></script>
 
 <script>
+    var texture_placeholder;
     var container, stats;
     container = document.getElementById('container');
 
@@ -58,9 +59,9 @@
     var windowHalfY = containerWindow.height / 2;
 
     var box = {
-        width: myMath.randFloat(1, 100),
-        height: myMath.randFloat(1, 100),
-        depth: myMath.randFloat(1, 100)
+        width: myMath.randFloat(1, 360),
+        height: myMath.randFloat(1, 360),
+        depth: myMath.randFloat(1, 360)
     };
     console.log(box);
     var boxMath = function () {
@@ -82,33 +83,15 @@
         }
     }();
     var cameraPosition0 = {
-            x: 0,
-            y: 0,
-            z: 0
-        };
+        x: 0,
+        y: 0,
+        z: 0
+    };
 
 
     var perspectiveCamera = function () {
-        var far;
-        far = (boxMath.hypotenuse * 3);
-        if(far>=500){
-            if(far>2000){
-                far = 2000;
-            }
-        }else{
-            far = 500;
-        }
-        //far = 1000;
-
-        var fov;
-        fov = boxMath.avg;
-        if(fov>=60){
-            if(fov>90){
-                fov = 90;
-            }
-        }else{
-            fov = 60;
-        }
+        var far = 500 + (boxMath.hypotenuse * 2.4);
+        var fov = 60 + (boxMath.max / 12);
 
         return {
             fov: fov,//60~90;
@@ -121,7 +104,59 @@
     var axisHelper;
 
     var controls;
-    var textureCube;
+    var boxMaterials = [];
+    var materialImages = [
+        'Bridge2/negx.jpg',
+        'Bridge2/negy.jpg',
+        'Bridge2/negz.jpg',
+        'Bridge2/posx.jpg',
+        'Bridge2/posy.jpg',
+        'Bridge2/posz.jpg',
+        'MilkyWay/dark-s_nx.jpg',
+        'MilkyWay/dark-s_ny.jpg',
+        'MilkyWay/dark-s_nz.jpg',
+        'MilkyWay/dark-s_px.jpg',
+        'MilkyWay/dark-s_py.jpg',
+        'MilkyWay/dark-s_pz.jpg',
+        'Park2/negx.jpg',
+        'Park2/negy.jpg',
+        'Park2/negz.jpg',
+        'Park2/posx.jpg',
+        'Park2/posy.jpg',
+        'Park2/posz.jpg',
+        'Park3Med/nx.jpg',
+        'Park3Med/ny.jpg',
+        'Park3Med/nz.jpg',
+        'Park3Med/px.jpg',
+        'Park3Med/py.jpg',
+        'Park3Med/pz.jpg',
+        'pisa/nx.png',
+        'pisa/ny.png',
+        'pisa/nz.png',
+        'pisa/px.png',
+        'pisa/py.png',
+        'pisa/pz.png',
+        'pisaRGBM16/nx.png',
+        'pisaRGBM16/ny.png',
+        'pisaRGBM16/nz.png',
+        'pisaRGBM16/px.png',
+        'pisaRGBM16/py.png',
+        'pisaRGBM16/pz.png',
+        'skybox/nx.jpg',
+        'skybox/ny.jpg',
+        'skybox/nz.jpg',
+        'skybox/px.jpg',
+        'skybox/py.jpg',
+        'skybox/pz.jpg',
+        'sun_temple_stripe.jpg',
+        'sun_temple_stripe_stereo.jpg',
+        'SwedishRoyalCastle/nx.jpg',
+        'SwedishRoyalCastle/ny.jpg',
+        'SwedishRoyalCastle/nz.jpg',
+        'SwedishRoyalCastle/px.jpg',
+        'SwedishRoyalCastle/py.jpg',
+        'SwedishRoyalCastle/pz.jpg'
+    ];
 
     init();
     animate();
@@ -157,7 +192,13 @@
 
         }
 
-        var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
+        for (var i = 0; i < 6; i++) {
+            boxMaterials.push(loadTexture('textures/cube/' + materialImages[Math.floor(Math.random() * materialImages.length)]));
+        }
+
+
+//        var material = new THREE.MeshBasicMaterial( { vertexColors: THREE.FaceColors, overdraw: 0.5 } );
+        var material = new THREE.MultiMaterial(boxMaterials);
 
 
         cube = new THREE.Mesh(geometry, material);
@@ -165,8 +206,6 @@
         //cube.castShadow = true;
 
         scene.add(cube);
-
-
 
 
         renderer = new THREE.CanvasRenderer();
@@ -177,10 +216,8 @@
         container.appendChild(renderer.domElement);
 
 
-
         // Add OrbitControls so that we can pan around with the mouse.
         controls = new THREE.OrbitControls(camera, renderer.domElement);
-
 
 
         stats = new Stats();
@@ -223,27 +260,46 @@
         renderer.render(scene, camera);
     }
 
+    function loadTexture(path) {
+
+        var texture = new THREE.Texture(texture_placeholder);
+        var material = new THREE.MeshBasicMaterial({map: texture, overdraw: 0.5});
+
+        var image = new Image();
+        image.onload = function () {
+
+            texture.image = this;
+            texture.needsUpdate = true;
+
+        };
+        image.src = path;
+
+        return material;
+
+    }
+
     var active = "front";
 
-    $(function() {
-        $('.box-side').click(function(){
+    $(function () {
+        $('.box-side').click(function () {
 
-            if($( this ).hasClass( "front" )){
+            if ($(this).hasClass("front")) {
                 active = "front";
                 camera.position.set(+(cameraPosition0.x), +(cameraPosition0.y), +(cameraPosition0.z));//
-            }else if($( this ).hasClass( "left" )){
+                cube.geometry.faces[0].textureCubeIndex = 0;
+            } else if ($(this).hasClass("left")) {
                 active = "left";
                 camera.position.set(-(cameraPosition0.z), +(cameraPosition0.y), +(cameraPosition0.x));//
-            }else if($( this ).hasClass( "back" )){
+            } else if ($(this).hasClass("back")) {
                 active = "back";
                 camera.position.set(-(cameraPosition0.x), +(cameraPosition0.y), -(cameraPosition0.z));//
-            }else if($( this ).hasClass( "right" )){
+            } else if ($(this).hasClass("right")) {
                 active = "right";
                 camera.position.set(+(cameraPosition0.z), +(cameraPosition0.y), -(cameraPosition0.x));//
-            }else if($( this ).hasClass( "top" )){
+            } else if ($(this).hasClass("top")) {
                 active = "top";
                 camera.position.set(+(cameraPosition0.x), +(cameraPosition0.z), +(cameraPosition0.y));
-            }else if($( this ).hasClass( "bottom" )){
+            } else if ($(this).hasClass("bottom")) {
                 active = "bottom";
                 camera.position.set(+(cameraPosition0.x), -(cameraPosition0.z), +(cameraPosition0.y));
             }

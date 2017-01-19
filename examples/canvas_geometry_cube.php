@@ -11,17 +11,26 @@
             margin: 0px;
             overflow: hidden;
         }
+
+        .box-side.active {
+            color: #5075ff;
+            font-weight: bold;
+            border-bottom: 1px solid red;
+        }
     </style>
 </head>
 <body>
 <div id="container" style="width: 100%; height: 600px; border: 1px solid red;"></div>
 <div class="side-selector" id="side-selector">
-    <button class="box-side front">front</button>
+    <button class="box-side front active">front</button>
     <button class="box-side left ">left</button>
     <button class="box-side back ">back</button>
     <button class="box-side right ">right</button>
     <button class="box-side top ">top</button>
     <button class="box-side bottom ">bottom</button>
+</div>
+<div class="side-selector" id="side-changer">
+    <button class="box-side-change" style="font-weight: bold">change</button>
 </div>
 
 <script src="../build/jquery-3.1.1.min.js"></script>
@@ -192,8 +201,8 @@
 
         }
 
-        for (var i = 0; i < 6; i++) {
-            boxMaterials.push(loadTexture('textures/cube/' + materialImages[Math.floor(Math.random() * materialImages.length)]));
+        for (var i = 0; i < materialImages.length; i++) {
+            boxMaterials.push(loadTexture('textures/cube/' + materialImages[i]));
         }
 
 
@@ -278,33 +287,50 @@
 
     }
 
-    var active = "front";
-
+    var activeSide = "front";
+    var boxSides = {
+        "right": [0,1],//
+        "left": [2,3],//
+        "top": [4,5],
+        "bottom": [6,7],//
+        "front": [8,9],
+        "back": [10,11]
+    }
+    function setMaterialIndex() {
+        var materialIndex = Math.floor(Math.random() * boxMaterials.length);
+        cube.geometry.faces[boxSides[activeSide][0]].materialIndex = materialIndex;
+        cube.geometry.faces[boxSides[activeSide][1]].materialIndex = materialIndex;
+    }
     $(function () {
+        $('.box-side-change').click(function () {
+            setMaterialIndex();
+        });
         $('.box-side').click(function () {
-
+            $('#side-selector .box-side').each(function () {
+                $(this).removeClass('active');
+            });
+            $(this).addClass('active');
             if ($(this).hasClass("front")) {
-                active = "front";
+                activeSide = "front";
                 camera.position.set(+(cameraPosition0.x), +(cameraPosition0.y), +(cameraPosition0.z));//
-                cube.geometry.faces[0].textureCubeIndex = 0;
             } else if ($(this).hasClass("left")) {
-                active = "left";
+                activeSide = "left";
                 camera.position.set(-(cameraPosition0.z), +(cameraPosition0.y), +(cameraPosition0.x));//
             } else if ($(this).hasClass("back")) {
-                active = "back";
+                activeSide = "back";
                 camera.position.set(-(cameraPosition0.x), +(cameraPosition0.y), -(cameraPosition0.z));//
             } else if ($(this).hasClass("right")) {
-                active = "right";
+                activeSide = "right";
                 camera.position.set(+(cameraPosition0.z), +(cameraPosition0.y), -(cameraPosition0.x));//
             } else if ($(this).hasClass("top")) {
-                active = "top";
+                activeSide = "top";
                 camera.position.set(+(cameraPosition0.x), +(cameraPosition0.z), +(cameraPosition0.y));
             } else if ($(this).hasClass("bottom")) {
-                active = "bottom";
+                activeSide = "bottom";
                 camera.position.set(+(cameraPosition0.x), -(cameraPosition0.z), +(cameraPosition0.y));
             }
             controls.update();
-            console.log(active);
+            console.log(activeSide);
 
         });
     });
